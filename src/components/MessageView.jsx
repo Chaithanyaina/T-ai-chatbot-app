@@ -111,14 +111,15 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
   /** Subscriptions **/
   const { data, loading, error } = useSubscription(MESSAGES_SUBSCRIPTION, {
     variables: { chat_id: chatId },
-    skip: !chatId
+    skip: !chatId,
   });
 
   /** Mutations **/
   const [insertUserMessage] = useMutation(INSERT_USER_MESSAGE_MUTATION);
   const [sendMessageAction, { loading: sendingMessage }] = useMutation(SEND_MESSAGE_ACTION, {
-    onError: (err) => toast.error(`Chatbot error: ${err.message}`)
+    onError: (err) => toast.error(`Chatbot error: ${err.message}`),
   });
+
   const [updateMessage] = useMutation(UPDATE_MESSAGE_MUTATION);
   const [deleteMessage] = useMutation(DELETE_MESSAGE_MUTATION, {
     update(cache, { data: { delete_messages_by_pk } }) {
@@ -131,7 +132,7 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
     }
   });
 
-  /** Find last user & assistant messages **/
+  /** Last messages **/
   const { lastUserMessage, lastAssistantMessage } = useMemo(() => {
     if (!data?.messages || data.messages.length === 0) return {};
     const messages = [...data.messages].reverse();
@@ -142,9 +143,10 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
   }, [data]);
 
   /** Scroll to bottom **/
-  useEffect(() => {
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [data, sendingMessage]);
+  };
+  useEffect(scrollToBottom, [data, sendingMessage]);
 
   /** Send Message **/
   const handleSubmit = async (e) => {
@@ -154,16 +156,14 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
     setNewMessage('');
     try {
       await insertUserMessage({ variables: { chat_id: chatId, content: messageContent } });
-      await sendMessageAction({
-        variables: { chat_id: chatId, message: String(messageContent) }
-      });
+      await sendMessageAction({ variables: { chat_id: chatId, message: String(messageContent) } });
     } catch (err) {
       toast.error(`Failed to send message: ${err.message}`);
       setNewMessage(messageContent);
     }
   };
 
-  /** Edit & Resend Message **/
+  /** Edit & Resend **/
   const handleEditSubmit = async () => {
     if (!editingMessageId || !editedContent.trim()) {
       setEditingMessageId(null);
@@ -189,7 +189,7 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
     }
   };
 
-  /** No Chat Selected - updated empty state **/
+  /** Empty State **/
   if (!chatId) {
     return (
       <div className="flex-grow flex items-center justify-center h-full text-gray-500 relative">
@@ -205,7 +205,7 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
             Hi, {userData?.displayName || 'there'}!
           </h2>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            I'm Subspace Pro, your personal assistant.
+            I'm Subspace Pro, your personal finance assistant.
           </p>
           <p className="mt-1 text-gray-600 dark:text-gray-400">
             Select a chat on the left to get started.
@@ -215,7 +215,7 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
     );
   }
 
-  /** Loading / Error States **/
+  /** Loading / Error **/
   if (loading)
     return (
       <div className="flex-grow flex items-center justify-center h-full">
@@ -228,26 +228,23 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
     );
 
   return (
-    <div className="flex-grow flex flex-col h-screen relative">
+    <div className="flex-grow flex flex-col h-screen relative bg-white dark:bg-[#171717]">
       <div className="absolute top-4 left-4 z-10">
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+          className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800"
         >
           <MenuIcon size={24} />
         </button>
       </div>
-
       <Toaster position="top-center" />
-
-      {/* Messages */}
       <div className="flex-grow overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 pt-20 pb-10 space-y-8">
+        <div className="max-w-4xl w-full mx-auto px-4 pt-20 pb-10 space-y-8">
           <AnimatePresence>
             {data?.messages.map((msg) => (
               <motion.div
                 key={msg.id}
-                className={clsx('flex items-start gap-4 group', {
+                className={clsx('flex items-start gap-4 group w-full', {
                   'justify-end': msg.role === 'user'
                 })}
                 initial={{ opacity: 0, y: 20 }}
@@ -267,18 +264,21 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
                       <Pencil size={14} />
                     </button>
                   )}
-
                 {msg.role === 'assistant' && <Avatar role="assistant" />}
 
                 <div
-                  className={clsx('p-4 max-w-3xl rounded-lg shadow-sm w-full', {
-                    'bg-blue-600 text-white': msg.role === 'user',
-                    'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200':
-                      msg.role === 'assistant'
-                  })}
+                  className={clsx(
+                    'p-4 rounded-lg shadow-sm max-w-xl', // bubble sizing change
+                    {
+                      'bg-blue-600 text-white': msg.role === 'user',
+                      'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200':
+                        msg.role === 'assistant'
+                    }
+                  )}
                 >
                   {editingMessageId === msg.id ? (
                     <textarea
+                    
                       value={editedContent}
                       onChange={(e) => setEditedContent(e.target.value)}
                       onBlur={handleEditSubmit}
@@ -289,7 +289,7 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
                         }
                       }}
                       autoFocus
-                      className="w-full bg-transparent outline-none text-white dark:text-gray-100 resize-none"
+                      className="w-full p-4 pr-14 bg-gray-100 dark:bg-[#1e1e1e] border-2 border-transparent focus:border-blue-500 rounded-lg focus:outline-none focus:ring-0 transition-shadow text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none"
                       rows={Math.min(10, editedContent.split('\n').length)}
                     />
                   ) : (
@@ -298,13 +298,11 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
                     </div>
                   )}
                 </div>
-
                 {msg.role === 'user' && <Avatar role="user" userData={userData} />}
               </motion.div>
             ))}
           </AnimatePresence>
 
-          {/* Sending Indicator */}
           {sendingMessage && (
             <motion.div
               className="flex items-start gap-4"
@@ -353,13 +351,13 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
                 }
               }}
               placeholder="Ask about anything..."
-              className="w-full p-4 pr-14 bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 rounded-lg focus:outline-none focus:ring-0 transition-shadow text-gray-800 dark:text-gray-200 resize-none"
+              className="w-full p-4 pr-14 bg-gray-100 dark:bg-[#1e1e1e] border-2 border-transparent focus:border-blue-500 rounded-lg focus:outline-none focus:ring-0 transition-shadow text-gray-800 dark:text-gray-200 resize-none"
               style={{ maxHeight: '200px' }}
             />
             <button
               type="submit"
               disabled={!newMessage.trim() || sendingMessage}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-blue-600 text-white rounded-full disabled:bg-blue-400 disabled:dark:bg-blue-800 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-blue-600 text-white rounded-lg disabled:bg-blue-400 disabled:dark:bg-blue-800 transition-colors"
             >
               {sendingMessage ? (
                 <Loader2 className="animate-spin" size={20} />
