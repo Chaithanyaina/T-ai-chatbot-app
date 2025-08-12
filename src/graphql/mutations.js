@@ -23,3 +23,35 @@ export const SEND_MESSAGE_ACTION = gql`
     }
   }
 `;
+export const UPDATE_CHAT_TITLE_MUTATION = gql`
+  mutation UpdateChatTitle($id: uuid!, $title: String!) {
+    update_chats_by_pk(pk_columns: {id: $id}, _set: {title: $title}) {
+      id
+      title
+    }
+  }
+`;
+
+export const DELETE_CHAT_MUTATION = gql`
+  mutation DeleteChat($id: uuid!) {
+    delete_chats_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+export const UPDATE_MESSAGE_MUTATION = gql`
+  mutation UpdateMessage($id: uuid!, $content: String!) {
+    update_messages_by_pk(pk_columns: {id: $id}, _set: {content: $content}) {
+      id
+      content
+    }
+  }
+`;
+
+export const DELETE_MESSAGE_MUTATION = gql`
+  mutation DeleteMessage($id: uuid!) {
+    delete_messages_by_pk(id: $id) {
+      id
+    }
+  }
+`;
