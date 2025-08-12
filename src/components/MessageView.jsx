@@ -205,7 +205,7 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
             Hi, {userData?.displayName || 'there'}!
           </h2>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            I'm Subspace Pro, your personal finance assistant.
+            I'm Subspace Pro, your personal assistant.
           </p>
           <p className="mt-1 text-gray-600 dark:text-gray-400">
             Select a chat on the left to get started.
@@ -352,7 +352,7 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
                   handleSubmit(e);
                 }
               }}
-              placeholder="Ask about managing your subscriptions..."
+              placeholder="Ask about anything..."
               className="w-full p-4 pr-14 bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 rounded-lg focus:outline-none focus:ring-0 transition-shadow text-gray-800 dark:text-gray-200 resize-none"
               style={{ maxHeight: '200px' }}
             />
