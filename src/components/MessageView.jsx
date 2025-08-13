@@ -205,7 +205,7 @@ const MessageView = ({ chatId, isSidebarOpen, setIsSidebarOpen }) => {
             Hi, {userData?.displayName || 'there'}!
           </h2>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            I'm Subspace Pro, your personal finance assistant.
+            I'm Subspace Pro, your persona assistant.
           </p>
           <p className="mt-1 text-gray-600 dark:text-gray-400">
             Select a chat on the left to get started.
