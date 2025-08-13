@@ -6,11 +6,8 @@ A full-stack, real-time, and secure AI chatbot application built to showcase mod
 
 ### **✨ Live Demo & Showcase**
 
-* **Deployed Site:** `[Your Final Netlify Link]`
-* **Video Walkthrough:** `[Link to your Loom or YouTube Demo Video]`
-
-*[GIF of the chatbot in action]*
-*(**Tip:** Record a short GIF of you using the app and place it here. You can use a free tool like Giphy Capture or ScreenToGif.)*
+* **Deployed Site:** `https://subspaceaichatbot.netlify.app/`
+* **Video Walkthrough:** `https://tinyurl.com/44fpbw33`
 
 ---
 ## About The Project
@@ -67,8 +64,8 @@ To run this project locally, follow these steps:
 
 1.  **Clone the repository:**
     ```bash
-    git clone [Your GitHub Repository URL]
-    cd [your-repo-name]
+    git clone https://github.com/Chaithanyaina/T-ai-chatbot-app.git
+    cd T-ai-chatbot-app
     ```
 2.  **Install dependencies:**
     ```bash
