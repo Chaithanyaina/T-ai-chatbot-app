@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import ProtectedRoute from './components/ProtectedRoute';
+import DeveloperCredit from './components/DeveloperCredit'; // Import the new component
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
         </Route>
       </Routes>
+      <DeveloperCredit /> {/* Add the component here */}
     </BrowserRouter>
   );
 }
