@@ -89,3 +89,17 @@ To run this project locally, follow these steps:
     ```bash
     npm run dev
     ```
+
+    
+6.  **Future Enhancements**
+
+The current application serves as a robust and feature-complete foundation. The following enhancements are planned to further expand its capabilities:
+
+* **File and Image Uploads:** Integrate Nhost Storage to allow users to upload images and documents. This would be coupled with a multi-modal AI model, enabling the chatbot to analyze, summarize, and discuss the content of the uploaded files.
+
+* **Global Chat Search:** Implement a powerful, full-text search functionality, allowing users to instantly find specific messages or information across their entire conversation history.
+
+* **Deep Personal Finance Integration:** Further develop the "Subspace Pro" persona into an indispensable financial assistant by adding specialized tools. This could include features for:
+    * Analyzing spending patterns from uploaded bank statements.
+    * Tracking subscription price changes over time.
+    * Offering proactive savings advice based on user data.
