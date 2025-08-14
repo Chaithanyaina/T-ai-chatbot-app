@@ -1,38 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import ConfirmationModal from './ConfirmationModal';
 import { useMutation, useQuery } from '@apollo/client';
 import { GET_CHATS_QUERY } from '../graphql/queries';
-import {
-  CREATE_CHAT_MUTATION,
-  UPDATE_CHAT_TITLE_MUTATION,
-  DELETE_CHAT_MUTATION
-} from '../graphql/mutations';
+import { CREATE_CHAT_MUTATION, UPDATE_CHAT_TITLE_MUTATION, DELETE_CHAT_MUTATION } from '../graphql/mutations';
 import { useSignOut, useUserData } from '@nhost/react';
-import {
-  Loader2,
-  PlusCircle,
-  MoreHorizontal,
-  LogOut,
-  Trash2,
-  Pencil,
-  Sun,
-  Moon
-} from 'lucide-react';
+import { Loader2, PlusCircle, MoreHorizontal, LogOut, Trash2, Pencil, Sun, Moon } from 'lucide-react';
 import clsx from 'clsx';
 import { Toaster, toast } from 'react-hot-toast';
 import { Menu } from '@headlessui/react';
+import { motion } from 'framer-motion';
+import ConfirmationModal from './ConfirmationModal';
 import Avatar from './Avatar';
 
-// Dark Mode Toggle Component
+// ---------------- Theme Toggle ----------------
 const ThemeToggle = () => {
-  const [theme, setTheme] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) return savedTheme;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
-  });
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -43,43 +24,41 @@ const ThemeToggle = () => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  const toggleTheme = () =>
-    setTheme(theme === 'light' ? 'dark' : 'light');
+  const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
 
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+      className="p-2 rounded-md text-gray-500 dark:text-muted-foreground 
+                 hover:bg-gray-200 dark:hover:bg-accent hover:text-gray-800 dark:hover:text-accent-foreground 
+                 transition-colors"
     >
       {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
     </button>
   );
 };
 
+// ---------------- Chat List ----------------
 const ChatList = ({ selectedChatId, onSelectChat }) => {
   const { data, loading, error } = useQuery(GET_CHATS_QUERY);
   const userData = useUserData();
   const { signOut } = useSignOut();
+
   const [editingChatId, setEditingChatId] = useState(null);
   const [newTitle, setNewTitle] = useState('');
   const [chatToDelete, setChatToDelete] = useState(null);
 
-  const [createChat, { loading: creatingChat }] = useMutation(
-    CREATE_CHAT_MUTATION,
-    {
-      refetchQueries: [{ query: GET_CHATS_QUERY }],
-      onCompleted: (data) => {
-        onSelectChat(data.insert_chats_one.id);
-        toast.success('New chat created!');
-      },
-      onError: (err) =>
-        toast.error(`Error creating chat: ${err.message}`)
-    }
-  );
+  const [createChat, { loading: creatingChat }] = useMutation(CREATE_CHAT_MUTATION, {
+    refetchQueries: [{ query: GET_CHATS_QUERY }],
+    onCompleted: (data) => {
+      onSelectChat(data.insert_chats_one.id);
+      toast.success('New chat created!');
+    },
+    onError: (err) => toast.error(`Error creating chat: ${err.message}`),
+  });
 
   const [updateChatTitle] = useMutation(UPDATE_CHAT_TITLE_MUTATION, {
-    onError: (err) =>
-      toast.error(`Error renaming chat: ${err.message}`)
+    onError: (err) => toast.error(`Error renaming chat: ${err.message}`),
   });
 
   const [deleteChat] = useMutation(DELETE_CHAT_MUTATION, {
@@ -88,11 +67,10 @@ const ChatList = ({ selectedChatId, onSelectChat }) => {
         fields: {
           chats(existingChats = [], { readField }) {
             return existingChats.filter(
-              (chatRef) =>
-                delete_chats_by_pk.id !== readField('id', chatRef)
+              (chatRef) => delete_chats_by_pk.id !== readField('id', chatRef)
             );
-          }
-        }
+          },
+        },
       });
     },
     onCompleted: () => {
@@ -102,12 +80,12 @@ const ChatList = ({ selectedChatId, onSelectChat }) => {
       toast.success('Chat deleted!');
       setChatToDelete(null);
     },
-    onError: (err) =>
-      toast.error(`Error deleting chat: ${err.message}`)
+    onError: (err) => toast.error(`Error deleting chat: ${err.message}`),
   });
 
+  // ---------------- Handlers ----------------
   const handleNewChat = () => {
-    const newChatTitle = `Chat - ${new Date().toLocaleTimeString()}`;
+    const newChatTitle = `New Chat - ${new Date().toLocaleTimeString()}`;
     createChat({ variables: { title: newChatTitle } });
   };
 
@@ -118,9 +96,7 @@ const ChatList = ({ selectedChatId, onSelectChat }) => {
 
   const handleTitleSubmit = (chatId) => {
     if (newTitle.trim()) {
-      updateChatTitle({
-        variables: { id: chatId, title: newTitle }
-      });
+      updateChatTitle({ variables: { id: chatId, title: newTitle } });
     }
     setEditingChatId(null);
   };
@@ -131,51 +107,52 @@ const ChatList = ({ selectedChatId, onSelectChat }) => {
     }
   };
 
-  if (loading)
+  // ---------------- Render States ----------------
+  if (loading) {
     return (
-      <div className="p-4 w-full max-w-xs bg-secondary/50">
-        <Loader2 className="animate-spin text-muted-foreground" />
+      <div className="p-4 w-full max-w-xs bg-gray-50 dark:bg-secondary/50">
+        <Loader2 className="animate-spin text-gray-400 dark:text-muted-foreground" />
       </div>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
-      <div className="p-4 w-full max-w-xs bg-secondary/50 text-destructive">
+      <div className="p-4 w-full max-w-xs bg-gray-50 dark:bg-secondary/50 text-red-500 dark:text-destructive">
         Error: {error.message}
       </div>
     );
+  }
 
+  // ---------------- Main Render ----------------
   return (
     <>
+      {/* Delete Confirmation */}
       <ConfirmationModal
         isOpen={!!chatToDelete}
         onClose={() => setChatToDelete(null)}
         onConfirm={handleDeleteConfirm}
         title="Delete Chat"
       >
-        Are you sure you want to delete the chat "
-        {chatToDelete?.title}"? This action cannot be undone.
+        Are you sure you want to delete the chat "{chatToDelete?.title}"? This action cannot be undone.
       </ConfirmationModal>
 
-      <div className="w-full max-w-xs bg-secondary/50 backdrop-blur-lg border-r border-border h-screen flex flex-col">
+      <div className="w-full max-w-xs bg-white dark:bg-secondary/50 backdrop-blur-lg border-r border-gray-200 dark:border-border h-screen flex flex-col">
         <Toaster />
+
         {/* Header */}
-        <div className="p-4 border-b border-border flex justify-between items-center flex-shrink-0">
-          <h2 className="text-lg font-semibold text-foreground">
-            Chats
-          </h2>
+        <div className="p-4 border-b border-gray-200 dark:border-border flex justify-between items-center flex-shrink-0">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-foreground">Subspace Pro</h2>
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <button
               onClick={handleNewChat}
               disabled={creatingChat}
-              className="p-2 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-50 transition-colors"
+              className="p-2 rounded-md text-gray-500 dark:text-muted-foreground 
+                         hover:bg-gray-200 dark:hover:bg-accent hover:text-gray-800 dark:hover:text-accent-foreground 
+                         disabled:opacity-50 transition-colors"
             >
-              {creatingChat ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <PlusCircle size={20} />
-              )}
+              {creatingChat ? <Loader2 className="animate-spin" /> : <PlusCircle size={20} />}
             </button>
           </div>
         </div>
@@ -185,17 +162,14 @@ const ChatList = ({ selectedChatId, onSelectChat }) => {
           {data?.chats.map((chat) => (
             <div
               key={chat.id}
-              onClick={() =>
-                editingChatId !== chat.id && onSelectChat(chat.id)
-              }
+              onClick={() => editingChatId !== chat.id && onSelectChat(chat.id)}
               className={clsx(
                 'group p-3 my-1 flex justify-between items-center cursor-pointer rounded-lg transition-all duration-200',
                 {
-                  'bg-primary text-primary-foreground shadow-lg animate-subtle-glow':
-                    selectedChatId === chat.id &&
-                    editingChatId !== chat.id,
-                  'hover:bg-accent text-accent-foreground':
-                    selectedChatId !== chat.id
+                  'bg-blue-600 text-white shadow-lg animate-subtle-glow':
+                    selectedChatId === chat.id && editingChatId !== chat.id,
+                  'hover:bg-gray-100 dark:hover:bg-accent text-gray-800 dark:text-accent-foreground':
+                    selectedChatId !== chat.id,
                 }
               )}
             >
@@ -205,24 +179,20 @@ const ChatList = ({ selectedChatId, onSelectChat }) => {
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   onBlur={() => handleTitleSubmit(chat.id)}
-                  onKeyDown={(e) =>
-                    e.key === 'Enter' && handleTitleSubmit(chat.id)
-                  }
+                  onKeyDown={(e) => e.key === 'Enter' && handleTitleSubmit(chat.id)}
                   autoFocus
-                  className="w-full bg-transparent outline-none text-sm font-medium"
+                  className="w-full bg-transparent outline-none text-sm font-medium text-gray-800 dark:text-foreground"
                 />
               ) : (
                 <>
-                  <p className="font-medium text-sm truncate">
-                    {chat.title}
-                  </p>
+                  <p className="font-medium text-sm truncate">{chat.title}</p>
                   <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleStartEditing(chat);
                       }}
-                      className="p-1 rounded hover:bg-white/10"
+                      className="p-1 rounded text-gray-500 dark:text-muted-foreground hover:bg-black/10 dark:hover:bg-white/10"
                     >
                       <Pencil size={14} />
                     </button>
@@ -231,7 +201,7 @@ const ChatList = ({ selectedChatId, onSelectChat }) => {
                         e.stopPropagation();
                         setChatToDelete(chat);
                       }}
-                      className="p-1 rounded hover:bg-white/10 text-red-500"
+                      className="p-1 rounded text-red-500 hover:bg-black/10 dark:hover:bg-white/10"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -243,19 +213,16 @@ const ChatList = ({ selectedChatId, onSelectChat }) => {
         </div>
 
         {/* User Menu */}
-        <div className="p-2 border-t border-border flex-shrink-0">
+        <div className="p-2 border-t border-gray-200 dark:border-border flex-shrink-0">
           <Menu as="div" className="relative">
-            <Menu.Button className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-accent transition-colors">
+            <Menu.Button className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-accent transition-colors">
               <div className="flex items-center gap-2 overflow-hidden">
                 <Avatar role="user" userData={userData} />
-                <span className="text-sm font-medium text-foreground truncate">
+                <span className="text-sm font-medium text-gray-800 dark:text-foreground truncate">
                   {userData?.displayName || userData?.email}
                 </span>
               </div>
-              <MoreHorizontal
-                size={20}
-                className="text-muted-foreground"
-              />
+              <MoreHorizontal size={20} className="text-gray-500 dark:text-muted-foreground" />
             </Menu.Button>
             <Menu.Items
               as={motion.div}
@@ -263,7 +230,8 @@ const ChatList = ({ selectedChatId, onSelectChat }) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.1 }}
-              className="absolute bottom-full left-0 mb-2 w-full origin-bottom-left bg-secondary rounded-md shadow-lg ring-1 ring-border focus:outline-none"
+              className="absolute bottom-full left-0 mb-2 w-full origin-bottom-left bg-white dark:bg-secondary 
+                         rounded-md shadow-lg ring-1 ring-black/5 dark:ring-border focus:outline-none z-10"
             >
               <div className="p-1">
                 <Menu.Item>
@@ -273,8 +241,8 @@ const ChatList = ({ selectedChatId, onSelectChat }) => {
                       className={clsx(
                         'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md',
                         {
-                          'bg-accent text-accent-foreground': active,
-                          'text-muted-foreground': !active
+                          'bg-gray-100 dark:bg-accent text-gray-900 dark:text-accent-foreground': active,
+                          'text-gray-700 dark:text-muted-foreground': !active,
                         }
                       )}
                     >
