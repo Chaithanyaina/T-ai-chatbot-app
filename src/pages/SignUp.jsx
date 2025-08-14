@@ -9,23 +9,27 @@ const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
-  // NEW: State to show the success message
+  // State to show the success message
   const [isSignedUp, setIsSignedUp] = useState(false);
 
   const { signUpEmailPassword, isLoading, isError, error } = useSignUpEmailPassword();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    const { isSuccess } = await signUpEmailPassword(email, password, {
-      displayName: email.split('@')[0],
-    });
+    
+    const { isSuccess, needsEmailVerification, error: signUpError } = 
+      await signUpEmailPassword(email, password, {
+        displayName: email.split('@')[0],
+      });
 
-    if (isSuccess) {
-      setIsSignedUp(true); // Show success message instead of redirecting
+    if (isSuccess || needsEmailVerification) {
+      setIsSignedUp(true); // Show success message
+    } else if (signUpError) {
+      toast.error(signUpError.message || 'An unknown error occurred.');
     }
   };
   
-  // NEW: Conditional rendering for the success message
+  // Success screen after signup
   if (isSignedUp) {
     return (
       <AuthLayout>
@@ -35,13 +39,16 @@ const SignUp = () => {
             Please verify your email
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            We've sent a verification link to **{email}**.
+            We've sent a verification link to <strong>{email}</strong>.
           </p>
           <p className="mt-4 text-sm text-gray-500 dark:text-gray-500">
             Please check your inbox (and your spam folder!) and click the link to activate your account.
           </p>
           <div className="mt-6">
-            <Link to="/sign-in" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
+            <Link 
+              to="/sign-in" 
+              className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+            >
               Return to Sign In
             </Link>
           </div>
@@ -50,6 +57,7 @@ const SignUp = () => {
     );
   }
 
+  // Signup form
   return (
     <AuthLayout>
       <Toaster/>
@@ -59,7 +67,10 @@ const SignUp = () => {
         </h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           Or{' '}
-          <Link to="/sign-in" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
+          <Link 
+            to="/sign-in" 
+            className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+          >
             sign in to your existing account
           </Link>
         </p>
@@ -71,12 +82,29 @@ const SignUp = () => {
           </div>
         )}
         <div className="space-y-4 rounded-md">
-          {/* Form fields remain the same */}
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Email address" />
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Password" />
+          <input 
+            type="email" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+            required 
+            className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition" 
+            placeholder="Email address" 
+          />
+          <input 
+            type="password" 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+            required 
+            className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition" 
+            placeholder="Password" 
+          />
         </div>
         <div>
-          <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400 dark:disabled:bg-blue-800 transition-colors">
+          <button 
+            type="submit" 
+            disabled={isLoading} 
+            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400 dark:disabled:bg-blue-800 transition-colors"
+          >
             {isLoading ? 'Creating Account...' : 'Create Account'}
           </button>
         </div>
